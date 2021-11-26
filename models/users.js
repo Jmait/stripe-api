@@ -1,4 +1,4 @@
-require('dotenv').config();
+
 const { Sequelize, DataTypes } = require('sequelize');
 const DB = process.env.DB_URL;
 const sequelize = new Sequelize(DB)

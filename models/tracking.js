@@ -11,10 +11,10 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   tracking.init({
-    route: Sequelize.STRING,
-    entry_time: Sequelize.DATE,
-    exit_time: Sequelize.DATE,
-    user_id: Sequelize.INTEGER
+    route: DataTypes.STRING,
+    entry_time:DataTypes.DATE,
+    exit_time: DataTypes.DATE,
+    user_id: DataTypes.INTEGER
   }, { sequelize, modelName: 'tracking' });
   return tracking;
 };

@@ -1,6 +1,7 @@
 const express = require('express');
 const { restricted } = require('../../auth/authenticate.js');
 const Merch = require('../../models/merch.js');
+const { sync } = require('../../models/users.js');
 const storeRouter = express.Router();
 
 // ----------------
@@ -76,7 +77,7 @@ storeRouter.post('/', restricted, async (req, res) => {
   if (body) {
     body.quantity = 1;
     body.deletedAt = null;
-
+    await Merch.sync()
     try {
       const product = await Merch.create(body);
       if (product) {

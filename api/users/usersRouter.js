@@ -47,21 +47,35 @@ userRouter.get('/:id', protect, async (req, res) => {
 // -------------
 // Register User
 // -------------
+
+// production: {
+//   username: process.env.DB_UNAME,
+//   password: process.env.DB_PASS,
+//   database: process.env.DB_NAME,
+//   host: process.env.HOST,
+//   port:process.env.DB_PORT,
+//   dialect: 'postgres',
+//   dialectOptions: {
+//     bigNumberStrings: true,
+//   }
+// }
+
 userRouter.post('/register', async (req, res) => {
   const { body } = req;
-
+   console.log(body);
   if (body) {
     const hash = bcrypt.hashSync(body.password, 10);
     body.password = hash;
     body.account_type = 'user';
 
     try {
+      await User.sync();
       const user = await User.create(body);
       if (user) {
         const token = generateToken(user);
         res.status(200).json({ token, user }); 
       } else res.status(500).json({ err: 'Unable to create user' })
-    } catch (err) { res.status(500).json(err)}
+    } catch (err) { res.status(500).json(err); console.log(err);}
   } else res.status(500).json({ err: 'Provide an email and password' });
 });
 
@@ -69,6 +83,7 @@ userRouter.post('/register', async (req, res) => {
 // Login User
 // ----------
 userRouter.post('/login', async (req, res) => {
+  console.log(req);
   const auth = req.body;
 
   if (auth) {

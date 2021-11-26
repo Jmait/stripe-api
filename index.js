@@ -1,13 +1,13 @@
+require('dotenv').config();
+
 const express = require('express');
 const bodyParser = require('body-parser');
-
-const dotenv = require('dotenv');
 const cors = require('cors');
-require('dotenv').config();
+
 
 const PORT = process.env.PORT || 5000;
 const APP_URL = process.env.APP_URL || 'http://localhost:5000';
-const DB = process.env.DB_URL;
+const db =  require('./models');
 
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -47,6 +47,14 @@ app.use('/tracking', trackingRouter);
 app.use('/merch-orders', merchOrdersRouter);
 app.use('/service-orders', serviceOrdersRouter);
 
+
+app.use((req,res)=>{
+  res.status(404).json({messgage:"Resources not found"})
+})
+
+db.sequelize.authenticate()
+    .then((r)=> console.log('database connected...',r))
+    .catch(err => console.log("database error:", err));
 app.listen(PORT, () => console.log(`Listening on ${PORT}`)); 
 
 module.exports = app;

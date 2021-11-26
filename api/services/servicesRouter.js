@@ -77,6 +77,7 @@ servicesRouter.post('/', restricted, async (req, res) => {
     body.deletedAt = null;
 
     try {
+      await Service.sync();
       const service = await Service.create(body);
       if (service) {
         const services = await Service.findAll({ where: { deletedAt: null }});

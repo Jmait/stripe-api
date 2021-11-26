@@ -78,6 +78,7 @@ photographersRouter.post('/', restricted, async (req, res) => {
     body.quantity = 1;
 
     try {
+      await Photographer.sync()
       const photographer = await Photographer.create(body);
       if (photographer) {
         const photographers = await Photographer.findAll({ where: { deletedAt: null }});

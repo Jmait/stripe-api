@@ -1,9 +1,7 @@
 require('dotenv').config();
 const Sequelize = require('sequelize');
 const DB = process.env.DB_URL;
-const sequelize = new Sequelize(DB, {
-  define: { freezeTableName: true}
-});
+const sequelize = new Sequelize(DB)
 
 module.exports = sequelize.define('merch', {
   id: {

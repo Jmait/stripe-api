@@ -37,14 +37,14 @@
     "sqlite3": "^5.0.0",
     "stripe": "^8.124.0",
     "uuid": "^8.3.1",
-    "uuidv4": "^6.2.5"
+    "uuidv4": "^6.2.5",
+    "dotenv": "^10.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",
     "babel-preset-stage-3": "^6.24.1",
     "cross-env": "^7.0.2",
-    "dotenv": "^10.0.0",
     "jest": "^26.5.3",
     "morgan": "^1.10.0",
     "nodemon": "^2.0.4",

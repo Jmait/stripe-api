@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const Sequelize = require('sequelize');
 const { generateToken, protect, restricted } = require('../../auth/authenticate.js');
 const { v4: uuidv4 } = require('uuid');
-const stripe = require("stripe")("sk_test_Ed9d8T76puISLXcu5AOeYzaJ00cfGDICBA", {
+const stripe = require("stripe")(process.env.STRIPE_KEY, {
   apiVersion: '2020-08-27',
 });
 
@@ -15,6 +15,9 @@ const ServiceOrder = require('../../models/serviceorders.js');
 const Merch = require('../../models/merch.js');
 const Service = require('../../models/services.js');
 const Photographer = require('../../models/photographers.js');
+const serviceorders = require('../../models/serviceorders.js');
+
+
 
 User.hasMany(MerchOrder, { foreignKey: 'user_id' });
 MerchOrder.belongsTo(User, { foreignKey: 'user_id' });
@@ -31,6 +34,7 @@ ServiceOrder.belongsTo(Service, { foreignKey: 'service_id' });
 Photographer.hasMany(ServiceOrder, { foreignKey: 'photographer_id' });
 ServiceOrder.belongsTo(Photographer, { foreignKey: 'photographer_id' });
 
+
 // ----------------
 // Get Current User
 // ----------------
@@ -38,10 +42,10 @@ userRouter.get('/:id', protect, async (req, res) => {
   let { id } = req.params;
 
   try {
-    const user = await User.findAll({ where: { id: id, deletedAt: null }});
+    const user = await User.findAll({ where: { id: id, deletedAt: null } });
     if (user) res.status(200).json(user)
     else res.status(404).json({ err: 'No user found with this ID' })
-  } catch (err) { res.status(500).json({ error: 'Internal Server Error', err })}
+  } catch (err) { res.status(500).json({ error: 'Internal Server Error', err }) }
 });
 
 // -------------
@@ -62,7 +66,7 @@ userRouter.get('/:id', protect, async (req, res) => {
 
 userRouter.post('/register', async (req, res) => {
   const { body } = req;
-   console.log(body);
+  console.log(body);
   if (body) {
     const hash = bcrypt.hashSync(body.password, 10);
     body.password = hash;
@@ -73,9 +77,9 @@ userRouter.post('/register', async (req, res) => {
       const user = await User.create(body);
       if (user) {
         const token = generateToken(user);
-        res.status(200).json({ token, user }); 
+        res.status(200).json({ token, user });
       } else res.status(500).json({ err: 'Unable to create user' })
-    } catch (err) { res.status(500).json(err); console.log(err);}
+    } catch (err) { res.status(500).json(err); console.log(err); }
   } else res.status(500).json({ err: 'Provide an email and password' });
 });
 
@@ -93,7 +97,7 @@ userRouter.post('/login', async (req, res) => {
     if (user.deletedAt !== null) {
       if (user.length > 0 && bcrypt.compareSync(auth.password, user[0].password)) {
         try {
-          const token =  generateToken(user[0]);
+          const token = generateToken(user[0]);
           res.status(200).json({ token, user, message: 'Logged In' })
         } catch (err) { res.status(401).json({ err: err }) }
       } else res.status(500).json({ err: 'Password incorrect' })
@@ -109,15 +113,15 @@ userRouter.put('/:id', protect, async (req, res) => {
   let edit = req.body;
 
   try {
-    const getUser = await User.findAll({ where: { id: id }});
+    const getUser = await User.findAll({ where: { id: id } });
     if (getUser) {
-      const editUser = await User.update(edit, { where: { id: id }})
+      const editUser = await User.update(edit, { where: { id: id } })
       if (editUser) {
-        const newUser = await User.findAll({ where: { id: id }})
+        const newUser = await User.findAll({ where: { id: id } })
         res.status(202).json(newUser)
       } else res.status(500).json({ err: 'Server error, user not able to be updated' })
     } else res.status(404).json({ err: 'User Does not Exist' })
-  } catch (err) { res.status(500).json({ err: err })}
+  } catch (err) { res.status(500).json({ err: err }) }
 });
 
 // -----------
@@ -127,15 +131,16 @@ userRouter.put('/:id/delete', protect, async (req, res) => {
   let { id } = req.params;
 
   try {
-    const getUser = await User.findAll({ where: { id: id }});
+    const getUser = await User.findAll({ where: { id: id } });
     if (getUser) {
       const deletedUser = await User.update({
-        deletedAt: new Date()}, {
+        deletedAt: new Date()
+      }, {
         where: { id: id }
       })
       res.status(202).json(deletedUser);
     } else res.status(404).json({ err: 'User not found' })
-  } catch (err) { res.status(500).json({ err: err })};
+  } catch (err) { res.status(500).json({ err: err }) };
 });
 
 // ---------------------
@@ -143,7 +148,7 @@ userRouter.put('/:id/delete', protect, async (req, res) => {
 // ---------------------
 userRouter.get('/:id/merch-orders', protect, async (req, res) => {
   let { id } = req.params;
-  
+
   try {
     const orders = await MerchOrder.findAll({
       where: { user_id: id },
@@ -166,7 +171,7 @@ userRouter.post('/:id/merch-orders', protect, async (req, res) => {
       if (order) {
         res.status(201).json(order);
       } else res.status(406).json({ err: 'Server error, order not accepted' })
-    } catch (err) { res.status(500).json({ err: 'Internal server error', err })}
+    } catch (err) { res.status(500).json({ err: 'Internal server error', err }) }
   } else res.status(406).json({ err: 'Missing request body' })
 })
 
@@ -175,7 +180,7 @@ userRouter.post('/:id/merch-orders', protect, async (req, res) => {
 // -----------------------
 userRouter.get('/:id/service-orders', protect, async (req, res) => {
   let { id } = req.params;
-  
+
   try {
     const orders = await ServiceOrder.findAll({
       where: { user_id: id },
@@ -197,7 +202,7 @@ userRouter.post('/:id/service-orders', protect, async (req, res) => {
       const order = await ServiceOrder.create(body);
       if (order) {
         res.status(201).json(order);
-      } else  res.status(406).json({ err: 'Server error, order not accepted' })
+      } else res.status(406).json({ err: 'Server error, order not accepted' })
     } catch (err) { res.status(500).json({ err: 'Internal server error', err }) }
   } else res.status(406).json({ err: 'Missing request body' })
 })
@@ -207,57 +212,86 @@ userRouter.post('/:id/service-orders', protect, async (req, res) => {
 // -------
 userRouter.post('/pay', async (req, res) => {
   const { body } = req;
-  const { token } = body.authToken;
-  const location = `${body.location.city} ${body.location.state}`;
+  // const { token } = body.authToken;
+  
 
   try {
-      const customer = await stripe.customers.create({
-          email: body.user.email,
-          source: token.id
-      });
+    const customer = await stripe.customers.create({
+      email: body.user.email,
+      // source: token.id
+    });
+    const ephemeralKey = await stripe.ephemeralKeys.create(
+      { customer: customer.id },
+      { apiVersion: '2020-08-27' },
 
-      const charge = await stripe.charges.create({
-          amount: body.price * 100,
-          currency: 'usd',
-          customer: customer.id
-      });
+    );
+    const charge = await stripe.paymentIntents.create({
+      amount: body.price * 100 ,
+      currency: 'usd',
+      customer: customer.id
+    });
 
-      if (charge) {
-        for (let i = 0; i < body.cart.length; i++) {
-          if (body.cart[i].type === 'service') {
-            try {
-              const serviceOrder = await ServiceOrder.create({
-                location: location,
-                date: body.date,
-                payment_token: charge.balance_transaction,
-                createdAt: new Date(),
-                user_id: body.user.id,
-                service_id: body.cart[i].id,
-                photographer_id: body.photographer.id,
-              })
-              
-              if (serviceOrder) res.status(202).json(serviceOrder);
-              else res.status(400).json({ err: 'Could not create order' })
-            } catch (err) { res.status(500).json({ err: 'Internal Server Error', err })}
-          } else {
-            try {
-              const merchOrder = await MerchOrder.create({
-                status: 'ORDERED',
-                quantity: body.cart[i].quantity,
-                payment_token: charge.balance_transaction,
-                size: body.cart[i].size,
-                user_id: body.user.id,
-                merch_id: body.cart[i].id,
-                createdAt: new Date(),
-              })
+    if (charge) {
+      res.status(200).json({
+        paymentIntent: charge.client_secret,
+        ephemeralKey: ephemeralKey.secret,
+        customer: customer.id,
+        publishableKey: 'pk_test_eEz0rYKkWOWGHnE40nEDEucP00HIFzhAy0'
+      }); 
+      
+    } else {
+      res.status(500).json({ err: 'Could not process payment' })
+    };
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ err: 'Internal server error', err })
+  };
+})
 
-              if (merchOrder) res.status(202).json(merchOrder);
-              else res.status(400).json({ err: 'Could not create order' })
-            } catch (err) { res.status(500).json({ err: 'Internal Server Error', err })}
-          }
-        }
-      } else res.status(500).json({ err: 'Could not process payment' });
-  } catch (err) { res.status(500).json({ err: 'Internal server error', err })};
+userRouter.post('/create-order',async(req,res)=>{
+  const {body} = req;
+  const location = `${body.location.city} ${body.location.state}`;
+
+  
+try {
+  for (let i = 0; i < body.cart.length; i++) {
+    if (body.cart[i].type === 'service') {
+      try {
+        await ServiceOrder.sync()
+        const serviceOrder = await ServiceOrder.create({
+          location: location,
+          date: body.date,
+          payment_token: body.paymentToken,
+          createdAt: new Date(),
+          user_id: body.user.id,
+          service_id: body.cart[i].id,
+          photographer_id: body.photographer.id,
+        })
+
+        if (serviceOrder)  res.status(200).json(serviceOrder);
+        else res.status(400).json({ err: 'Could not create order' })
+      } catch (err) { console.log(err),res.status(500).json({ err: 'Internal Server Error', err }) }
+    } else {
+      try {
+        await MerchOrder.sync();
+        const merchOrder = await MerchOrder.create({
+          status: 'ORDERED',
+          quantity: body.cart[i].quantity,
+          payment_token: body.paymentToken,
+          size: body.cart[i].size,
+          user_id: body.user.id,
+          merch_id: body.cart[i].id,
+          createdAt: new Date(),
+        })
+
+        if (merchOrder) res.status(200).json(merchOrder)
+        else res.status(400).json({ err: 'Could not create order' })
+      } catch (err) { res.status(500).json({ err: 'Internal Server Error', err }),console.log(err); }
+    }
+  }
+} catch (error) {
+  
+}
 })
 
 module.exports = userRouter;

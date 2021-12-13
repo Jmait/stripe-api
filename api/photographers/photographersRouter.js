@@ -51,13 +51,12 @@ photographersRouter.put('/:id', restricted, async (req, res) => {
 // -------------------------
 photographersRouter.put('/:id/delete', restricted, async (req, res) => {
   let { id } = req.params;
-  let { body } = req;
-
+  const deletedAt = new Date()
   try {
     const photographer = await Photographer.findAll({ where: { id: id }});
     if (photographer) {
       const deletedPhotographer = await Photographer.update({
-        deletedAt: body }, {
+        deletedAt}, {
           where: { id: id }
       })
       if (deletedPhotographer) {
@@ -65,7 +64,7 @@ photographersRouter.put('/:id/delete', restricted, async (req, res) => {
         res.status(202).json(photographers)
       } else res.status(500).json({ err: 'Could not delete service' })
     } else res.status(404).json({ err: 'No user found'})
-  } catch (err) { res.status(500).json({ err: 'Internal Server Error', err })};
+  } catch (err) { console.log(err),res.status(500).json({ err: 'Internal Server Error', err })};
 });
 
 // -------------------
